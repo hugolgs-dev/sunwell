@@ -2,7 +2,7 @@
 
 ## What is sunwell
 
-A WIP Gleam package to encode & decode hearthstone deckstrings.
+A WIP Gleam package to encode & decode [Hearthstone](https://hearthstone.blizzard.com/en-us) deckstrings.
 
 ## Acknowledgements
 

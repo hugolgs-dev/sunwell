@@ -4,6 +4,7 @@ import gleam/result
 import sunwell/deck.{type DeckDefinition, type DeckError}
 import sunwell/internal/varint
 
+/// decode: decodes a deckstring into a [`DeckDefinition`].
 pub fn decode(deckstring: String) -> Result(DeckDefinition, DeckError) {
   use bytes <- result.try(
     bit_array.base64_decode(deckstring)
@@ -90,4 +91,42 @@ fn read_n_cards(bytes, remaining, acc) {
       read_n_cards(rest2, remaining - 1, [deck.DeckCard(dbf_id, count), ..acc])
     }
   }
+}
+
+/// encode: encodes a [`DeckDefinition`] into a deckstring.
+pub fn encode(deck: DeckDefinition) -> String {
+  let deck.DeckDefinition(cards, _sideboard_cards, heroes, format) = deck
+  let singles = list.filter(cards, fn(card) { card.count == 1 })
+  let doubles = list.filter(cards, fn(card) { card.count == 2 })
+  let multiples =
+    list.filter(cards, fn(card) { card.count != 1 && card.count != 2 })
+
+  let bytes =
+    <<0>>
+    |> append_varint(deck.deckstring_version)
+    |> append_varint(deck.format_to_int(format))
+    |> append_varint(list.length(heroes))
+    |> append_varints(heroes)
+    |> append_varint(list.length(singles))
+    |> append_varints(list.map(singles, fn(card) { card.dbf_id }))
+    |> append_varint(list.length(doubles))
+    |> append_varints(list.map(doubles, fn(card) { card.dbf_id }))
+    |> append_varint(list.length(multiples))
+    |> append_multiples(multiples)
+
+  bit_array.base64_encode(bytes, True)
+}
+
+fn append_varint(acc: BitArray, value: Int) -> BitArray {
+  <<acc:bits, varint.encode(value):bits>>
+}
+
+fn append_varints(acc: BitArray, values: List(Int)) -> BitArray {
+  list.fold(values, acc, append_varint)
+}
+
+fn append_multiples(acc: BitArray, cards: List(deck.DeckCard)) -> BitArray {
+  list.fold(cards, acc, fn(a, c) {
+    a |> append_varint(c.dbf_id) |> append_varint(c.count)
+  })
 }

@@ -42,3 +42,32 @@ pub fn decode_deckstring_test() {
 
   assert sunwell.decode(deckstring) == Ok(expected)
 }
+
+pub fn encode_deckstring_test() {
+  let deck_def =
+    deck.DeckDefinition(
+      format: deck.Wild,
+      heroes: [7],
+      cards: [
+        deck.DeckCard(1, 3),
+        deck.DeckCard(2, 3),
+        deck.DeckCard(3, 3),
+        deck.DeckCard(4, 3),
+      ],
+      sideboard_cards: [],
+    )
+
+  assert sunwell.encode(deck_def) == "AAEBAQcAAAQBAwIDAwMEAw=="
+}
+
+pub fn encode_decode_cycle_test() {
+  let deck_def =
+    deck.DeckDefinition(
+      format: deck.Standard,
+      heroes: [7],
+      cards: [deck.DeckCard(1, 1), deck.DeckCard(2, 2), deck.DeckCard(3, 3)],
+      sideboard_cards: [],
+    )
+
+  assert sunwell.decode(sunwell.encode(deck_def)) == Ok(deck_def)
+}

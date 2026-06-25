@@ -1,4 +1,5 @@
 import gleam/bit_array
+import gleam/int
 import gleam/list
 import gleam/result
 import sunwell/deck.{type DeckDefinition, type DeckError}
@@ -29,7 +30,10 @@ pub fn decode(deckstring: String) -> Result(DeckDefinition, DeckError) {
 
   use #(multi, _rest) <- result.try(read_n_block(rest))
 
-  let cards = list.flatten([singles, doubles, multi])
+  let cards =
+    list.flatten([singles, doubles, multi])
+    |> list.sort(fn(a, b) { int.compare(a.dbf_id, b.dbf_id) })
+
   Ok(deck.DeckDefinition(format:, heroes:, cards:, sideboard_cards: []))
 }
 
@@ -96,10 +100,17 @@ fn read_n_cards(bytes, remaining, acc) {
 /// encode: encodes a [`DeckDefinition`] into a deckstring.
 pub fn encode(deck: DeckDefinition) -> String {
   let deck.DeckDefinition(cards, _sideboard_cards, heroes, format) = deck
-  let singles = list.filter(cards, fn(card) { card.count == 1 })
-  let doubles = list.filter(cards, fn(card) { card.count == 2 })
+
+  let singles =
+    list.filter(cards, fn(card) { card.count == 1 })
+    |> list.sort(fn(a, b) { int.compare(a.dbf_id, b.dbf_id) })
+  let doubles =
+    list.filter(cards, fn(card) { card.count == 2 })
+    |> list.sort(fn(a, b) { int.compare(a.dbf_id, b.dbf_id) })
   let multiples =
     list.filter(cards, fn(card) { card.count != 1 && card.count != 2 })
+    |> list.sort(fn(a, b) { int.compare(a.dbf_id, b.dbf_id) })
+  let heroes = list.sort(heroes, int.compare)
 
   let bytes =
     <<0>>

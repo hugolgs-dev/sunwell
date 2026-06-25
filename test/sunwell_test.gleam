@@ -60,6 +60,23 @@ pub fn encode_deckstring_test() {
   assert sunwell.encode(deck_def) == "AAEBAQcAAAQBAwIDAwMEAw=="
 }
 
+pub fn encode_sorts_test() {
+  let deck_def =
+    deck.DeckDefinition(
+      format: deck.Wild,
+      heroes: [7],
+      cards: [
+        deck.DeckCard(3, 3),
+        deck.DeckCard(2, 3),
+        deck.DeckCard(1, 3),
+        deck.DeckCard(4, 3),
+      ],
+      sideboard_cards: [],
+    )
+
+  assert sunwell.encode(deck_def) == "AAEBAQcAAAQBAwIDAwMEAw=="
+}
+
 pub fn encode_decode_cycle_test() {
   let deck_def =
     deck.DeckDefinition(

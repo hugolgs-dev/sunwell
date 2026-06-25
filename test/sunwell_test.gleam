@@ -1,6 +1,6 @@
 import gleeunit
+import sunwell
 import sunwell/deck
-import sunwell/decode
 import sunwell/internal/varint
 
 pub fn main() {
@@ -40,5 +40,5 @@ pub fn decode_deckstring_test() {
       sideboard_cards: [],
     )
 
-  assert decode.decode(deckstring) == Ok(expected)
+  assert sunwell.decode(deckstring) == Ok(expected)
 }

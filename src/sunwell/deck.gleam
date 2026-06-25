@@ -2,6 +2,8 @@
 pub type Format {
   Wild
   Standard
+  Classic
+  Twist
 }
 
 pub type DeckCard {
@@ -39,6 +41,8 @@ pub fn format_to_int(format: Format) -> Int {
   case format {
     Wild -> 1
     Standard -> 2
+    Classic -> 3
+    Twist -> 4
   }
 }
 

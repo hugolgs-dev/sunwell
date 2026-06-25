@@ -4,21 +4,6 @@ pub type Format {
   Standard
 }
 
-/// will need it at some point. I think.
-pub type Hero {
-  DeathKnight
-  DemonHunter
-  Druid
-  Hunter
-  Mage
-  Paladin
-  Priest
-  Rogue
-  Shaman
-  Warlock
-  Warrior
-}
-
 pub type DeckCard {
   DeckCard(dbf_id: Int, count: Int)
 }
@@ -26,9 +11,6 @@ pub type DeckCard {
 pub type SideboardCard {
   SideboardCard(dbf_id: Int, count: Int, sideboard_owner_dbf_id: Int)
 }
-
-pub type Decklist =
-  List(DeckCard)
 
 pub type DeckDefinition {
   DeckDefinition(

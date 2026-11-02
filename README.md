@@ -38,7 +38,7 @@ pub fn main() {
 
 Output:
 
-```
+```sh
 [DeckCard(141, 2), DeckCard(216, 2), DeckCard(296, 2), DeckCard(437, 2), DeckCard(455, 1), DeckCard(519, 2), DeckCard(585, 1), DeckCard(658, 2), DeckCard(699, 1), DeckCard(877, 2), DeckCard(921, 1), DeckCard(985, 1), DeckCard(1003, 2), DeckCard(1144, 1), DeckCard(1243, 2), DeckCard(1261, 2), DeckCard(1281, 2), DeckCard(1662, 2)]
 AAECAR8GxwPJBLsFmQfZB/gIDI0B2AGoArUDhwSSBe0G6wfbCe0JgQr+DAAA
 ```

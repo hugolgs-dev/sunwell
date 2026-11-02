@@ -1,3 +1,6 @@
+//// This is the entry point of the package.
+//// Types and errors live in `sunwell/deck.gleam`, and the encoding/decoding logic lives here in `sunwell.gleam`.
+
 import gleam/bit_array
 import gleam/int
 import gleam/list
@@ -6,7 +9,9 @@ import gleam/result
 import sunwell/deck.{type DeckDefinition, type DeckError}
 import sunwell/internal/varint
 
-/// decode: decodes a deckstring into a [`DeckDefinition`].
+/// - This function decodes a deckstring (base64) into a `DeckDefinition`.
+/// - Cards are sorted by `dbf_id` in the resulting `DeckDefinition`.
+/// - `sideboard_cards` are sorted by `sideboard_owner_dbf_id` then `dbf_id`. The sideboard section is optional, not every deck has a card with a sideboard.
 pub fn decode(deckstring: String) -> Result(DeckDefinition, DeckError) {
   use bytes <- result.try(
     bit_array.base64_decode(deckstring)
@@ -37,6 +42,55 @@ pub fn decode(deckstring: String) -> Result(DeckDefinition, DeckError) {
 
   Ok(deck.DeckDefinition(format:, heroes:, cards:, sideboard_cards:))
 }
+
+/// - This function encodes a `DeckDefinition` into a deckstring (base64).
+/// - What it checks first: hero, cards' dbf_ids, cards' counts, sideboard cards' dbf_ids, sideboard cards' counts, and sideboard owners' dbf_ids. If any of these are invalid, it returns an error.
+/// - Cards are sorted by `dbf_id` in the resulting deckstring.
+/// - It never checks if cards exist or if the deck is legal, only the format.
+pub fn encode(definition: DeckDefinition) -> Result(String, DeckError) {
+  let deck.DeckDefinition(cards:, sideboard_cards:, heroes:, format:) =
+    definition
+
+  use _ <- result.try(
+    list.try_each(heroes, fn(hero) { positive(hero, deck.InvalidHero) }),
+  )
+  use _ <- result.try(
+    list.try_each(cards, fn(card) {
+      use _ <- result.try(positive(card.dbf_id, deck.InvalidCard))
+      positive(card.count, deck.InvalidCardCount)
+    }),
+  )
+  use _ <- result.try(
+    list.try_each(sideboard_cards, fn(card) {
+      use _ <- result.try(positive(card.dbf_id, deck.InvalidCard))
+      use _ <- result.try(positive(card.count, deck.InvalidSideboardCardCount))
+      positive(card.sideboard_owner_dbf_id, deck.InvalidSideboardOwner)
+    }),
+  )
+
+  let #(singles, doubles, multiples) =
+    list.sort(cards, by_dbf_id)
+    |> trisort(fn(card) { card.count })
+  let heroes = list.sort(heroes, int.compare)
+
+  let dbf_id = fn(acc, card: deck.DeckCard) { append_varint(acc, card.dbf_id) }
+
+  let bytes =
+    <<0>>
+    |> append_varint(deck.deckstring_version)
+    |> append_varint(deck.format_to_int(format))
+    |> append_block(heroes, append_varint)
+    |> append_block(singles, dbf_id)
+    |> append_block(doubles, dbf_id)
+    |> append_block(multiples, fn(acc, card: deck.DeckCard) {
+      acc |> append_varint(card.dbf_id) |> append_varint(card.count)
+    })
+    |> append_sideboard(sideboard_cards)
+
+  Ok(bit_array.base64_encode(bytes, True))
+}
+
+// The following functions are helpers for the `decode()` and `encode()` functions.
 
 fn expect_leading_zero(bytes: BitArray) -> Result(BitArray, DeckError) {
   case bytes {
@@ -151,50 +205,6 @@ fn by_owner_then_dbf_id(
 ) -> order.Order {
   int.compare(a.sideboard_owner_dbf_id, b.sideboard_owner_dbf_id)
   |> order.lazy_break_tie(fn() { int.compare(a.dbf_id, b.dbf_id) })
-}
-
-/// encode: encodes a [`DeckDefinition`] into a deckstring.
-pub fn encode(definition: DeckDefinition) -> Result(String, DeckError) {
-  let deck.DeckDefinition(cards:, sideboard_cards:, heroes:, format:) =
-    definition
-
-  use _ <- result.try(
-    list.try_each(heroes, fn(hero) { positive(hero, deck.InvalidHero) }),
-  )
-  use _ <- result.try(
-    list.try_each(cards, fn(card) {
-      use _ <- result.try(positive(card.dbf_id, deck.InvalidCard))
-      positive(card.count, deck.InvalidCardCount)
-    }),
-  )
-  use _ <- result.try(
-    list.try_each(sideboard_cards, fn(card) {
-      use _ <- result.try(positive(card.dbf_id, deck.InvalidCard))
-      use _ <- result.try(positive(card.count, deck.InvalidSideboardCardCount))
-      positive(card.sideboard_owner_dbf_id, deck.InvalidSideboardOwner)
-    }),
-  )
-
-  let #(singles, doubles, multiples) =
-    list.sort(cards, by_dbf_id)
-    |> trisort(fn(card) { card.count })
-  let heroes = list.sort(heroes, int.compare)
-
-  let dbf_id = fn(acc, card: deck.DeckCard) { append_varint(acc, card.dbf_id) }
-
-  let bytes =
-    <<0>>
-    |> append_varint(deck.deckstring_version)
-    |> append_varint(deck.format_to_int(format))
-    |> append_block(heroes, append_varint)
-    |> append_block(singles, dbf_id)
-    |> append_block(doubles, dbf_id)
-    |> append_block(multiples, fn(acc, card: deck.DeckCard) {
-      acc |> append_varint(card.dbf_id) |> append_varint(card.count)
-    })
-    |> append_sideboard(sideboard_cards)
-
-  Ok(bit_array.base64_encode(bytes, True))
 }
 
 fn positive(value: Int, error: fn(Int) -> DeckError) -> Result(Nil, DeckError) {

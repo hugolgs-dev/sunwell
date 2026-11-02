@@ -19,24 +19,28 @@ import gleam/io
 import sunwell
 import sunwell/deck
 
+const deckstring = "AAECAR8GxwPJBLsFmQfZB/gIDI0B2AGoArUDhwSSBe0G6wfbCe0JgQr+DAAA"
+
 pub fn main() {
-  let assert Ok(definition) =
-    sunwell.decode("AAECAR8GxwPJBLsFmQfZB/gIDI0B2AGoArUDhwSSBe0G6wfbCe0JgQr+DAAA")
+  let assert Ok(definition) = sunwell.decode(deckstring)
 
-  definition.format // deck.Standard
-  definition.heroes // [31]
-  definition.cards  // [deck.DeckCard(141, 2), deck.DeckCard(216, 2), ..]
+  let assert deck.Standard = definition.format
+  let assert [31] = definition.heroes
+  echo definition.cards
 
-  let assert Ok(deckstring) = sunwell.encode(definition)
-  io.println(deckstring)
+  let assert Ok(encoded) = sunwell.encode(definition)
+  let assert True = encoded == deckstring
+  io.println(encoded)
+
+  let assert Error(deck.InvalidDeckstring) = sunwell.decode("not a deckstring")
 }
 ```
 
-Both functions return a `Result`, so malformed input is reported rather than raised:
+Output:
 
-```gleam
-sunwell.decode("not a deckstring")
-// -> Error(deck.InvalidDeckstring)
+```
+[DeckCard(141, 2), DeckCard(216, 2), DeckCard(296, 2), DeckCard(437, 2), DeckCard(455, 1), DeckCard(519, 2), DeckCard(585, 1), DeckCard(658, 2), DeckCard(699, 1), DeckCard(877, 2), DeckCard(921, 1), DeckCard(985, 1), DeckCard(1003, 2), DeckCard(1144, 1), DeckCard(1243, 2), DeckCard(1261, 2), DeckCard(1281, 2), DeckCard(1662, 2)]
+AAECAR8GxwPJBLsFmQfZB/gIDI0B2AGoArUDhwSSBe0G6wfbCe0JgQr+DAAA
 ```
 
 See `sunwell/deck` for `DeckDefinition`, `Format`, and the full `DeckError` type.

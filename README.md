@@ -4,13 +4,7 @@
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/sunwell/)
 [![test](https://github.com/hugolgs-dev/sunwell/actions/workflows/test.yml/badge.svg)](https://github.com/hugolgs-dev/sunwell/actions/workflows/test.yml)
 
-## What is sunwell
-
 A Gleam package to encode & decode [Hearthstone](https://hearthstone.blizzard.com/en-us) deckstrings. 
-
-## Status
-
-Work-in-progress.
 
 ## Installation
 

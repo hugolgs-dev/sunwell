@@ -37,17 +37,17 @@ pub type DeckDefinition {
 
 /// All the errors possible when encoding/decoding a deckstring.
 pub type DeckError {
-  /// Card's dbf_id doesn't exist so it's an invalid card.
+  /// Card's dbf_id is not positive (0 or negative so it's an invalid card.
   InvalidCard(dbf_id: Int)
   /// Unknown format number (not 1, 2, 3 or 4).
   InvalidFormat(format: Int)
-  /// Hero's dbf_id doesn't exist so it's an invalid hero.
+  /// Hero's dbf_id is not positive (0 or negative so it's an invalid hero.
   InvalidHero(hero: Int)
   /// Invalid base64, header and/or malformed bytes.
   InvalidDeckstring
   /// The number of cards in the deck is invalid.
   InvalidCardCount(count: Int)
-  /// The sideboard owner's dbf_id doesn't exist so it's an invalid sideboard owner.
+  /// The sideboard owner's dbf_id is not positive (0 or negative so it's an invalid sideboard owner.
   InvalidSideboardOwner(owner: Int)
   /// The number of sideboard cards in the deck is invalid.
   InvalidSideboardCardCount(count: Int)

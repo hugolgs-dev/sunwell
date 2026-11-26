@@ -1,5 +1,26 @@
 //// This is the entry point of the package.
 //// Types and errors live in `sunwell/deck.gleam`, and the encoding/decoding logic lives here in `sunwell.gleam`.
+//// ```gleam
+//// import gleam/io
+//// import sunwell
+//// import sunwell/deck
+////
+//// const deckstring = "AAECAR8GxwPJBLsFmQfZB/gIDI0B2AGoArUDhwSSBe0G6wfbCe0JgQr+DAAA"
+////
+//// pub fn main() {
+////  let assert Ok(definition) = sunwell.decode(deckstring)
+////
+////  let assert deck.Standard = definition.format
+////  let assert [31] = definition.heroes
+////  echo definition.cards
+////
+////  let assert Ok(encoded) = sunwell.encode(definition)
+////  let assert True = encoded == deckstring
+////  io.println(encoded)
+////
+////  let assert Error(deck.InvalidDeckstring) = sunwell.decode("not a deckstring")
+//// }
+////```
 
 import gleam/bit_array
 import gleam/int
@@ -9,7 +30,7 @@ import gleam/result
 import sunwell/deck.{type DeckDefinition, type DeckError}
 import sunwell/internal/varint
 
-/// - This function decodes a deckstring (base64) into a `DeckDefinition`.
+/// This function decodes a deckstring (base64) into a `DeckDefinition`.
 /// - Cards are sorted by `dbf_id` in the resulting `DeckDefinition`.
 /// - `sideboard_cards` are sorted by `sideboard_owner_dbf_id` then `dbf_id`. The sideboard section is optional, not every deck has a card with a sideboard.
 pub fn decode(deckstring: String) -> Result(DeckDefinition, DeckError) {
@@ -43,10 +64,10 @@ pub fn decode(deckstring: String) -> Result(DeckDefinition, DeckError) {
   Ok(deck.DeckDefinition(format:, heroes:, cards:, sideboard_cards:))
 }
 
-/// - This function encodes a `DeckDefinition` into a deckstring (base64).
+/// This function encodes a `DeckDefinition` into a deckstring (base64).
 /// - What it checks first: hero, cards' dbf_ids, cards' counts, sideboard cards' dbf_ids, sideboard cards' counts, and sideboard owners' dbf_ids. If any of these are invalid, it returns an error.
 /// - Cards are sorted by `dbf_id` in the resulting deckstring.
-/// - It never checks if cards exist or if the deck is legal, only the format.
+/// - It never checks if cards exist or if the deck is legal, only the format of the deck.
 pub fn encode(definition: DeckDefinition) -> Result(String, DeckError) {
   let deck.DeckDefinition(cards:, sideboard_cards:, heroes:, format:) =
     definition
